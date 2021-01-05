@@ -65,7 +65,7 @@ class BaseDevice:
     """
     Yamaha device abstraction class.
     """
-
+    
     def __init__(self, ip, handle_event=None):
         """Ctor.
         
@@ -153,49 +153,56 @@ class Device(BaseDevice):
     Yamaha device abstraction class.
     """
     
-    def __init__(self, ip, handle_event=None):
+    def __init__(self, ip, handle_event=None, timeout=None):
         """Ctor.
         
         Arguments:
             ip -- Yamaha device IP.
             handle_event -- callback function with one parameter (the message).
+            timeout -- timeout for requests.
         """
         super().__init__(ip, handle_event)
+        self.timeout = timeout
     # end-of-method __init__
     
-    def request(self, *args):
+    def request(self, *args, timeout=None):
         """Request YamahaExtendedControl API URI.
         
         Arguments:
             args -- URI link for GET or tupple (URI, data) for POST.
+            timeout -- Request timeout
         """
         
         # If it is only a URI, send GET...
         if isinstance(args[0], str):
-            return self.get(args[0])
+            return self.get(args[0], timeout=timeout)
         else:
             # ...otherwise unpack tuple and send POST
-            return self.post(*(args[0]))
+            return self.post(*(args[0]), timeout=timeout)
     # end-of-method request
     
-    def get(self, uri):
+    def get(self, uri, timeout=None):
         """Request given URI. Returns response object.
         
         Arguments:
             uri -- URI to request
+            timeout -- Request timeout
         """
-        r = requests.get(uri.format(host=self.ip), headers=self._headers)
+        timeout = timeout if timeout else self.timeout
+        r = requests.get(uri.format(host=self.ip), headers=self._headers, timeout=timeout)
         return r
     # end-of-method request    
     
-    def post(self, uri, data):
+    def post(self, uri, data, timeout=None):
         """Send POST request. Returns response object.
         
         Arguments:
             uri -- URI to send POST
             data -- POST data
+            timeout -- Request timeout
         """
-        r = requests.post(uri.format(host=self.ip), data=json.dumps(data), headers=self._headers)
+        timeout = timeout if timeout else self.timeout
+        r = requests.post(uri.format(host=self.ip), data=json.dumps(data), headers=self._headers, timeout=timeout)
         return r
     # end-of-method post    
     
